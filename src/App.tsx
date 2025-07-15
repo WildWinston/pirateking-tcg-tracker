@@ -9,6 +9,7 @@ import { FilterBar } from './components/FilterBar';
 import { MatchDetails } from './components/MatchDetails';
 import { calculateFilteredStats, type Match } from './utils/statsCalculator';
 export function App() {
+  
   const [showMatchForm, setShowMatchForm] = useState(false);
   const [showSessionForm, setShowSessionForm] = useState(false);
   const [editingSession, setEditingSession] = useState<{
@@ -38,6 +39,7 @@ export function App() {
     value: string;
   }>({ type: 'all', value: '' });
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
+  
   // Mock data
   const stats = {
     winRate: 60,
