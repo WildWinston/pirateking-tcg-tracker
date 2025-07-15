@@ -138,7 +138,9 @@ export function App() {
     }
     return 'All Sessions';
   };
-      return <div className="flex flex-col w-full min-h-screen bg-black text-white">
+
+  return (
+    <div className="flex flex-col w-full min-h-screen bg-black text-white">
       <Header onNewSession={handleNewMatch} />
       <main className="flex-1 p-4 max-w-7xl mx-auto w-full">
         {showSessionForm ? (
@@ -206,5 +208,6 @@ export function App() {
           onClose={() => setSelectedMatch(null)}
         />
       )}
-    </div>;
+    </div>
+  );
 }
