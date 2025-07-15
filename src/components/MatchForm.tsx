@@ -20,7 +20,8 @@ export function MatchForm({
   selectedSession,
   onCreateSession
 }: MatchFormProps) {
-  return <div className="bg-zinc-900 rounded-lg p-6 mb-6">
+  return (
+    <div className="bg-zinc-900 rounded-lg p-6 mb-6">
       <h2 className="text-3xl font-bold mb-1">Log a New Match</h2>
       <p className="text-zinc-400 mb-6">
         {selectedSession 
@@ -183,5 +184,6 @@ export function MatchForm({
           Log Match
         </button>
       </form>
-    </div>;
+    </div>
+  );
 }
