@@ -7,6 +7,8 @@ import { DeckPerformance } from './components/DeckPerformance';
 import { SessionsSection } from './components/SessionsSection';
 import { FilterBar } from './components/FilterBar';
 import { MatchDetails } from './components/MatchDetails';
+import { ConfirmationModal } from './components/ConfirmationModal';
+import { DeckManager } from './components/DeckManager';
 import { calculateFilteredStats, type Match } from './utils/statsCalculator';
 export function App() {
   
@@ -39,6 +41,20 @@ export function App() {
     value: string;
   }>({ type: 'all', value: '' });
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
+  const [deleteMatchModal, setDeleteMatchModal] = useState<{
+    isOpen: boolean;
+    match: Match | null;
+  }>({ isOpen: false, match: null });
+  
+  const [showDeckManager, setShowDeckManager] = useState(false);
+  const [decks, setDecks] = useState<Array<{
+    id: string;
+    name: string;
+    leader: string;
+    deckUrl: string;
+    notes: string;
+    createdAt: string;
+  }>>([]);
   
   // Mock data
   const stats = {
@@ -123,6 +139,39 @@ export function App() {
     setSelectedFilter({ type: 'session', value: sessionName });
   };
 
+  const handleDeleteSession = (sessionName: string) => {
+    setSessions(prev => prev.filter(s => s.name !== sessionName));
+    // Also remove matches associated with this session
+    setMatchHistory(prev => prev.filter(match => match.session !== sessionName));
+  };
+
+  const handleDeleteMatch = (match: Match) => {
+    setMatchHistory(prev => prev.filter(m => 
+      !(m.round === match.round && m.opponent === match.opponent && m.deck === match.deck && m.outcome === match.outcome)
+    ));
+  };
+
+  const handleSaveDeck = (deckData: { name: string; leader: string; deckUrl: string; notes: string }) => {
+    const newDeck = {
+      ...deckData,
+      id: Date.now().toString(),
+      createdAt: new Date().toISOString()
+    };
+    setDecks(prev => [newDeck, ...prev]);
+  };
+
+  const handleUpdateDeck = (id: string, deckData: { name: string; leader: string; deckUrl: string; notes: string }) => {
+    setDecks(prev => prev.map(deck => 
+      deck.id === id 
+        ? { ...deck, ...deckData }
+        : deck
+    ));
+  };
+
+  const handleDeleteDeck = (id: string) => {
+    setDecks(prev => prev.filter(deck => deck.id !== id));
+  };
+
   // Calculate filtered stats
   const { stats: filteredStats, deckPerformance: filteredDeckPerformance, filteredMatches } = calculateFilteredStats(
     sessions,
@@ -156,6 +205,8 @@ export function App() {
             onClose={() => setShowMatchForm(false)} 
             selectedSession={selectedSession}
             onCreateSession={handleCreateSession}
+            decks={decks}
+            onOpenDeckManager={() => setShowDeckManager(true)}
           />
         ) : (
           <>
@@ -172,30 +223,63 @@ export function App() {
                 onSessionClick={handleSessionClick}
                 onEditSession={handleEditSession}
                 onViewStats={handleViewStats}
+                onDeleteSession={handleDeleteSession}
               />
               <div className="bg-zinc-900 rounded-lg p-6">
                 <h2 className="text-3xl font-bold mb-1">Match History</h2>
                 <p className="text-zinc-400 mb-6">
                   Matches for "{getSessionDisplayName()}"
                 </p>
-                <div className="grid grid-cols-4 text-zinc-400 pb-2 border-b border-zinc-800">
+                <div className="grid grid-cols-5 text-zinc-400 pb-2 border-b border-zinc-800">
                   <div>Rnd</div>
                   <div>Opponent</div>
                   <div>Deck</div>
                   <div>Outcome</div>
+                  <div>Actions</div>
                 </div>
                 {filteredMatches.map((match, index) => <div 
                     key={index} 
-                    onClick={() => setSelectedMatch(match)}
-                    className="grid grid-cols-4 py-4 border-b border-zinc-800 cursor-pointer hover:bg-zinc-800 transition-colors"
+                    className="grid grid-cols-5 py-4 border-b border-zinc-800 hover:bg-zinc-800 transition-colors"
                   >
-                    <div>{match.round}</div>
-                    <div>{match.opponent}</div>
-                    <div>{match.deck}</div>
-                    <div>
+                    <div 
+                      className="cursor-pointer"
+                      onClick={() => setSelectedMatch(match)}
+                    >
+                      {match.round}
+                    </div>
+                    <div 
+                      className="cursor-pointer"
+                      onClick={() => setSelectedMatch(match)}
+                    >
+                      {match.opponent}
+                    </div>
+                    <div 
+                      className="cursor-pointer"
+                      onClick={() => setSelectedMatch(match)}
+                    >
+                      {match.deck}
+                    </div>
+                    <div 
+                      className="cursor-pointer"
+                      onClick={() => setSelectedMatch(match)}
+                    >
                       <span className={`px-3 py-1 rounded-full text-sm ${match.outcome === 'win' ? 'bg-green-600 text-white' : 'bg-red-600 text-white'}`}>
                         {match.outcome}
                       </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setDeleteMatchModal({ isOpen: true, match });
+                        }}
+                        className="p-1 rounded text-red-400 hover:bg-red-500 hover:text-white transition-colors"
+                        title="Delete Match"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
                     </div>
                   </div>)}
               </div>
@@ -210,6 +294,30 @@ export function App() {
           onClose={() => setSelectedMatch(null)}
         />
       )}
+      
+      <ConfirmationModal
+        isOpen={deleteMatchModal.isOpen}
+        onClose={() => setDeleteMatchModal({ isOpen: false, match: null })}
+        onConfirm={() => {
+          if (deleteMatchModal.match) {
+            handleDeleteMatch(deleteMatchModal.match);
+          }
+        }}
+        title="Delete Match"
+        message={`Are you sure you want to delete this match? This will permanently remove the match record. This action cannot be undone.`}
+        confirmText="Delete Match"
+        cancelText="Cancel"
+        type="danger"
+      />
+      
+      <DeckManager
+        isOpen={showDeckManager}
+        onClose={() => setShowDeckManager(false)}
+        decks={decks}
+        onSaveDeck={handleSaveDeck}
+        onUpdateDeck={handleUpdateDeck}
+        onDeleteDeck={handleDeleteDeck}
+      />
     </div>
   );
 }

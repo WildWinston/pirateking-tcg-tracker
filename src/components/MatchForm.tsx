@@ -1,6 +1,15 @@
 import React, { useState } from 'react';
-import { PlusIcon } from 'lucide-react';
+import { PlusIcon, SettingsIcon } from 'lucide-react';
 import { SearchableDropdown } from './SearchableDropdown';
+interface Deck {
+  id: string;
+  name: string;
+  leader: string;
+  deckUrl: string;
+  notes: string;
+  createdAt: string;
+}
+
 interface MatchFormProps {
   onClose: () => void;
   selectedSession?: {
@@ -15,13 +24,21 @@ interface MatchFormProps {
     notes?: string;
   };
   onCreateSession: () => void;
+  decks: Deck[];
+  onOpenDeckManager: () => void;
 }
 export function MatchForm({
   onClose,
   selectedSession,
-  onCreateSession
+  onCreateSession,
+  decks,
+  onOpenDeckManager
 }: MatchFormProps) {
   const [opponentDeck, setOpponentDeck] = useState('');
+  const [selectedDeck, setSelectedDeck] = useState('');
+  
+  // Create deck options from user's decks
+  const userDeckOptions = decks.map(deck => deck.name);
   
   // One Piece TCG Deck Options
   const deckOptions = [
@@ -188,22 +205,39 @@ export function MatchForm({
       <form className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="block mb-2">Your Deck</label>
-            <input 
-              type="text" 
-              placeholder="e.g., Sakazuki" 
-              defaultValue={selectedSession?.leader || ''}
-              className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white" 
-            />
+            <div className="flex items-center justify-between mb-2">
+              <label className="block">Your Deck</label>
+              <button
+                type="button"
+                onClick={onOpenDeckManager}
+                className="text-orange-400 hover:text-orange-300 text-sm flex items-center gap-1"
+                title="Manage Decks"
+              >
+                <SettingsIcon size={16} />
+                Manage Decks
+              </button>
+            </div>
+            {userDeckOptions.length > 0 ? (
+              <SearchableDropdown
+                options={userDeckOptions}
+                value={selectedDeck}
+                onChange={setSelectedDeck}
+                placeholder="Select your deck..."
+                label=""
+              />
+            ) : (
+              <div className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-zinc-400">
+                No decks created yet. Click "Manage Decks" to create your first deck.
+              </div>
+            )}
           </div>
           <div>
             <label className="block mb-2">
-              Decklist URL <span className="text-zinc-500">(Optional)</span>
+              Opponent Name <span className="text-zinc-500">(Optional)</span>
             </label>
             <input 
               type="text" 
-              placeholder="https://decklist.example" 
-              defaultValue={selectedSession?.deckUrl || ''}
+              placeholder="e.g., John D." 
               className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white" 
             />
           </div>
