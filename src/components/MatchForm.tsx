@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { PlusIcon, SettingsIcon } from 'lucide-react';
+import { PlusIcon, Settings } from 'lucide-react';
 import { SearchableDropdown } from './SearchableDropdown';
 interface Deck {
   id: string;
@@ -213,7 +213,7 @@ export function MatchForm({
                 className="text-orange-400 hover:text-orange-300 text-sm flex items-center gap-1"
                 title="Manage Decks"
               >
-                <SettingsIcon size={16} />
+                <Settings size={16} />
                 Manage Decks
               </button>
             </div>
