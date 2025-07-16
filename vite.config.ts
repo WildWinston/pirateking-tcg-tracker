@@ -4,5 +4,5 @@ import react from '@vitejs/plugin-react'
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
-  base: './', // This ensures relative paths work for GitHub Pages
+  base: '/pirateking-tcg-tracker/', // This ensures correct paths for GitHub Pages
 })
